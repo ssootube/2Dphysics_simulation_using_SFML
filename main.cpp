@@ -11,14 +11,15 @@
 using namespace std;
 using namespace sf;
 static float G = 0.5;//중력(0.1~9)
-static const int num = 2000; //생성할 공의 갯수
+static const int num = 80; //생성할 공의 갯수
 static float friction = 1.2; //마찰력은 1보다 커야한다. 1이면 완전 탄성 충돌
-static int diameter = 2;
+static int diameter = 50;
 void simplehit();
 class Point : private pair<float,float> {
 private:
 	float _length = -1;
 public:
+
 	Point() {
 	}
 	Point(float _x, float _y){
@@ -126,6 +127,7 @@ public:
 			this->vel.set(false, friction, true, friction), this->acc.set(false, friction, true, friction);
 			this->pos.y(480 - this->max_y());
 		}
+
 		this->vel = this->vel + this->acc + Point(0, G);
 		this->pos = this->pos + this->vel;
 		this->getShape()->setPosition(this->pos.x(), this->pos.y());
@@ -253,20 +255,24 @@ void simplehit() {
 	//x좌표 기준으로 정렬하자.
 	sort(balls.begin(), balls.end(), comp);
 	int size = balls.size();
+
 	for (int i = 0; i < size; ++i) {
+		int count = 0;
 		for (int j = i + 1; j < size; ++j) {
 
 			if (balls[i].hitTest(balls[j])) {
 				Point rv = balls[j].vel - balls[i].vel;//상대속도
 				Point unit = (balls[j].pos - balls[i].pos).unitVector();//충돌방향 단위벡터
-				float vel = unit* rv;
+				float vel = unit * rv;
 				vel = -vel;
 				balls[i].vel = balls[i].vel - unit * vel;
 				balls[j].vel = balls[j].vel + unit * vel;
 
-				balls[i].penetrationCorrection(balls[j]);
+				balls[i].penetrationCorrection(balls[j]);//박힌 위치 조정
+				count++;
 			}
-			else break;
+			else if(count >= 5) break;
+
 		}
 	}
 }
